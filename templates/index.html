@@ -1,0 +1,160 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <title>Socket-Test</title>
+    <script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/3.0.2/chart.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.12.1/underscore-min.js"></script>
+
+
+    <script type="text/javascript" charset="utf-8">
+        //from https://gist.github.com/0x263b/2bdd90886c2036a1ad5bcf06d6e6fb37
+        String.prototype.toHex = function() {
+            var hash = 0;
+            if (this.length === 0) return hash;
+            for (var i = 0; i < this.length; i++) {
+                hash = this.charCodeAt(i) + ((hash << 5) - hash);
+                hash = hash & hash;
+            }
+            var color = '#';
+            for (var i = 0; i < 3; i++) {
+                var value = (hash >> (i * 8)) & 255;
+                color += ('00' + value.toString(16)).substr(-2);
+            }
+            return color;
+        }
+
+
+    window.onload = function() {
+        var move_data = {};
+        var config = {
+          type: 'bar',
+          data:
+              {
+                  datasets: [{
+                    maxBarThickness: 50,
+                    data: []
+                  }],
+                  labels: []
+               },
+          options:
+              {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+
+                scales: {
+                  x: {
+                    grace: '5%',
+                    beginAtZero: true,
+                    ticks: {
+                      stepSize: 1
+                    }
+                  }
+                },
+
+                plugins: {
+                  legend: {
+                    display: false
+                  }
+                }
+              }
+        };
+
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var chart = new Chart(ctx, config);
+
+        var parse_move_data = function(m_data) {
+            console.log(m_data);
+            m_data_tmp = _.each(m_data, function(v, k, o) { return v });
+            console.log(m_data_tmp);
+            dat = [];
+            labels = [];
+            colors = [];
+            //Limit to top 10 answers
+            //TODO Sort by count value
+            counts = _.countBy(m_data_tmp,'move');
+            _.each(counts, function(v, k, o) {
+              dat.push(v);
+              labels.push(k);
+              colors.push(k.toHex());
+            });
+          mov_dat =
+            {
+              labels: labels,
+              datasets:
+              [
+                {
+                  maxBarThickness: 50,
+                  data: dat,
+                  backgroundColor: colors
+                }
+              ]
+            };
+          chart.data = mov_dat;
+          chart.update();
+          return mov_dat;
+        };
+
+
+            namespace = '/test';
+            var socket = io(namespace);
+
+            socket.on('connect', function() {
+                socket.emit('my_event', {data: 'connected to the SocketServer...'});
+            });
+
+            socket.on('my_response', function(msg, cb) {
+                move_data[msg.author_id] = msg;
+                $('#log').append('<br>' + $('<div/>').text('logs #' + msg.count + ': ' + msg.move + ' - ' + msg.author).html());
+                if(msg.count % 3 == 0){ //update chart after every 3 new data points
+                  parse_move_data(move_data);
+                }
+                if (cb)
+                    cb();
+            });
+
+            $('form#disconnect').submit(function(event) {
+                socket.emit('disconnect_request');
+                return false;
+            });
+
+
+      document.getElementById('logdata').addEventListener('click', function() {
+        //console.log(move_data);
+        parse_move_data(move_data);
+      });
+
+      document.getElementById('cleardata').addEventListener('click', function() {
+        chart.data.datasets.pop();
+        chart.data.labels = [];
+        // also clear logs
+        chart.update();
+        });
+      };
+    </script>
+
+
+
+    </head>
+    <body style="background-color:white;">
+
+        <h1 style="background-color:white;">Socket</h1>
+
+
+        <form id="disconnect" method="PUT" action="#">
+            <input type="submit" value="Disconnect Server">
+        </form>
+
+
+        <button id="logdata">Force chart update</button>
+        <button id="cleardata">Clear chart</button>
+        <div class="chart-container" style="width: 640px; height: 480px">
+          <canvas id="myChart"></canvas>
+        </div>
+        <h2 style="background-color:white;">Logs</h2>
+        <div id="log" ></div>
+    </body>
+
+</html>

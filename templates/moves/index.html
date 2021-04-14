@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="Mark Otto, Jacob Thornton, and Bootstrap contributors">
+    <meta name="generator" content="Hugo 0.82.0">
+    <title>Jumbotron example · Bootstrap v5.0</title>
+
+    <link rel="canonical" href="https://getbootstrap.com/docs/5.0/examples/jumbotron/">
+
+
+    <!-- Bootstrap core CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.0-beta3/css/bootstrap.min.css" />
+
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.4.1/font/bootstrap-icons.css">
+
+    <style>
+      .bd-placeholder-img {
+        font-size: 1.125rem;
+        text-anchor: middle;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        user-select: none;
+      }
+
+      @media (min-width: 768px) {
+        .bd-placeholder-img-lg {
+          font-size: 3.5rem;
+        }
+      }
+    </style>
+
+    <script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/3.0.2/chart.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.12.1/underscore-min.js"></script>
+
+
+    <script type="text/javascript" charset="utf-8">
+        //from https://gist.github.com/0x263b/2bdd90886c2036a1ad5bcf06d6e6fb37
+        String.prototype.toHex = function() {
+            var hash = 0;
+            if (this.length === 0) return hash;
+            for (var i = 0; i < this.length; i++) {
+                hash = this.charCodeAt(i) + ((hash << 5) - hash);
+                hash = hash & hash;
+            }
+            var color = '#';
+            for (var i = 0; i < 3; i++) {
+                var value = (hash >> (i * 8)) & 255;
+                color += ('00' + value.toString(16)).substr(-2);
+            }
+            return color;
+        }
+
+
+    window.onload = function() {
+        var move_data = {};
+        var config = {
+          type: 'bar',
+          data:
+              {
+                  datasets: [{
+                    maxBarThickness: 50,
+                    data: []
+                  }],
+                  labels: []
+               },
+          options:
+              {
+                indexAxis: 'y',
+                responsive: true,
+                maintainAspectRatio: false,
+
+                scales: {
+                  x: {
+                    grace: '5%',
+                    beginAtZero: true,
+                    ticks: {
+                      stepSize: 1
+                    }
+                  },
+                  y: {
+                    ticks: {
+                      font: {
+                        size: 20
+                      }
+                    }
+                  }
+                },
+
+                plugins: {
+                  legend: {
+                    display: false
+                  }
+                }
+              }
+        };
+
+        var ctx = document.getElementById('myChart').getContext('2d');
+        var chart = new Chart(ctx, config);
+
+        var parse_move_data = function(m_data) {
+            console.log(m_data);
+            m_data_tmp = _.each(m_data, function(v, k, o) { return v });
+            console.log(m_data_tmp);
+            dat = [];
+            labels = [];
+            colors = [];
+            //Limits to top 10 answers
+            counts = _.countBy(m_data_tmp,'move');
+          //console.log(counts);
+            //build object in format [{'move': 'bb4', 'count': 2}, ..]
+            move_counts = []
+            _.each(counts, function(v, k, o) {
+              move_counts.push({move: k, count: v});
+            });
+          //console.log(move_counts);
+            sorted_counts = _.sortBy(move_counts, function(o){return o.count}).reverse();
+          //console.log(sorted_counts);
+            counter = 0;
+            _.each(sorted_counts, function(o) {
+              if(counter < 10){
+                dat.push(o.count);
+                labels.push(o.move);
+                colors.push(o.move.toHex());
+              };
+              counter++;
+            });
+          mov_dat =
+            {
+              labels: labels,
+              datasets:
+              [
+                {
+                  maxBarThickness: 50,
+                  data: dat,
+                  backgroundColor: colors
+                }
+              ]
+            };
+          chart.data = mov_dat;
+          chart.update();
+          return mov_dat;
+        };
+
+
+
+
+      document.getElementById('logdata').addEventListener('click', function() {
+        //console.log(move_data);
+        parse_move_data(move_data);
+      });
+
+      var format_author = function(obj){
+        author = '<img style="border-radius:50%" width="24" height="24" src="'+obj.img_url+'"/>&nbsp;' + obj.author + '&nbsp;<img src="'+obj.badge_url+'"/>';
+        if(obj.isMod){
+          return '<b style="color:#5e84f1">'+author+'<i class="bi bi-wrench"></i></b>';
+        }
+        return author;
+      };
+
+      var unixtime_to_time = function(unix_timestamp){
+          // From https://stackoverflow.com/questions/847185/convert-a-unix-timestamp-to-time-in-javascript
+          // Create a new JavaScript Date object based on the timestamp
+          // multiplied by 1000 so that the argument is in milliseconds, not seconds.
+          var date = new Date(unix_timestamp * 1000);
+          // Hours part from the timestamp
+          var hours = date.getHours();
+          // Minutes part from the timestamp
+          var minutes = "0" + date.getMinutes();
+          // Seconds part from the timestamp
+          var seconds = "0" + date.getSeconds();
+          // Will display time in 10:30:23 format
+          var formattedTime = hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+          return formattedTime;
+      };
+
+      var socket;
+      var connect_to_socket = function(yt_id){
+        namespace = '/test';
+        socket = io(namespace);
+
+        socket.on('connect', function() {
+            socket.emit('my_event', {data: 'connected to the SocketServer...',
+              yt_id: yt_id});
+            $('#yt_id_form').hide();
+            $('#disconnect').show();
+            //socket.join("room-"+yt_id);
+        });
+
+        socket.on('my_response', function(msg, cb) {
+            move_data[msg.author_id] = msg;
+
+            $('#log_table').prepend('<tr><td>'+msg.move+'</td><td>'+format_author(msg)+'</td><td>'+unixtime_to_time(msg.unixtime)+'</td></tr>');
+            count = _.size(_.allKeys(move_data));
+            $('#move_counter').html('<h5>'+count+' moves logged</h5>');
+
+            if(msg.count % 3 == 0){ //update chart after every 3 new data points
+              parse_move_data(move_data);
+            }
+            if (cb)
+                cb();
+        });
+
+      }
+
+      document.getElementById('send_yt_id').addEventListener('click', function() {
+        yt_id = $('#yt_id').val();
+
+        valid = validVideoId(yt_id);
+        console.log(valid);
+        if(valid){
+          img_src = "http://img.youtube.com/vi/" + yt_id + "/mqdefault.jpg";
+          $('#img_thumb').html('<img id="theImg" src="'+img_src+'" />')
+          connect_to_socket(yt_id);
+          console.log('sending yt_id: '+yt_id);
+        }else{
+          alert('invalid video id. please check and try again');
+        }
+      });
+
+      document.getElementById('cleardata').addEventListener('click', function() {
+        move_data = {};
+        parse_move_data(move_data);
+
+        // also clear logs
+        $('#log_table').empty();
+        $('#move_counter').html('');
+
+        });
+
+
+      document.getElementById('disconnect').addEventListener('click', function() {
+          socket.emit('disconnect_request');
+          $('#yt_id_form').show();
+          $('#disconnect').hide();
+          return false;
+        });
+
+      };
+
+
+    function validVideoId(id) {
+      var img = new Image();
+      img.src = "http://img.youtube.com/vi/" + id + "/mqdefault.jpg";
+      img.onload = function () {
+        console.log(this.width);
+      }
+      return(img.width);
+    }
+
+    </script>
+
+
+
+  </head>
+  <body>
+
+<main>
+  <div class="container py-4">
+    <header class="pb-3 mb-4 border-bottom">
+      <a href="/" class="d-flex align-items-center text-dark text-decoration-none">
+        <span class="fs-4">Chat's Chess Moves</span>
+      </a>
+    </header>
+
+    <!-- ROW 2 -->
+    <div class="row align-items-md-stretch">
+
+      <div class="col-md-6">
+        <div class="h-100 p-5 rounded-3">
+          <h3>rS-FpbFuP0M</h3>
+
+          <div id="yt_id_form">
+            <label for="basic-url">Your youtube video URL</label>
+            <div class="input-group mb-3">
+              <div class="input-group-prepend">
+                <span class="input-group-text" id="basic-addon3">https://www.youtube.com/watch?v=<span>
+              </div>
+              <input type="text" class="form-control" id="yt_id" aria-describedby="basic-addon3">
+              <button class="btn btn-outline-secondary" type="button" id="send_yt_id">Submit</button>
+            </div>
+          </div>
+
+
+          <div id="move_btns">
+          <button class="btn btn-outline-secondary" type="button" id="logdata">Force chart update</button>
+          <button class="btn btn-outline-secondary" type="button" id="cleardata">Clear moves</button>
+          </div>
+
+          <button class="btn btn-outline-secondary" type="button" id="disconnect" style="display: none;">Stop</button>
+          <div class="chart-container" style="width: 640px; height: 480px">
+            <canvas id="myChart"></canvas>
+          </div>
+          <div id="img_thumb"></div>
+          <div>
+            <p>
+              Chart only displays the top 10 most common moves
+            <p>
+          </div>
+
+        </div>
+      </div>
+
+      <div class="col-md-6">
+        <div class="h-100 p-5 border bg-light rounded-3">
+          <h2>Moves Log</h2>
+
+          <div id="move_counter"></div>
+
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">Move</th>
+                <th scope="col">Name</th>
+                <th scope="col">Time</th>
+              </tr>
+            </thead>
+            <tbody id="log_table">
+            </tbody>
+          </table>
+
+        </div>
+      </div>
+
+    </div>
+
+    <footer class="pt-3 mt-4 text-muted border-top">
+      Made with <3
+    </footer>
+  </div>
+</main>
+
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.0-beta3/js/bootstrap.min.js" integrity="sha512-mp3VeMpuFKbgxm/XMUU4QQUcJX4AZfV5esgX72JQr7H7zWusV6lLP1S78wZnX2z9dwvywil1VHkHZAqfGOW7Nw==" crossorigin="anonymous"></script>
+
+  </body>
+</html>
