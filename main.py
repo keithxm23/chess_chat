@@ -62,11 +62,12 @@ def test_message(message):
         pass
     else:
         print('adding ytid to db and emitting events')
-        insert_yt_id(yt_id)
+        #insert_yt_id(yt_id)
         join_room(yt_id)
         session['receive_count'] = session.get('receive_count', 0) + 1
         #chat = pytchat.create(video_id=message['yt_id'], interruptable=False)
-        chat = pytchat.create(video_id=yt_id, interruptable=False, seektime=900)
+        #chat = pytchat.create(video_id='rS-FpbFuP0M', interruptable=False)
+        chat = pytchat.create(video_id='rS-FpbFuP0M', interruptable=False, seektime=900)
         while chat.is_alive():
             for c in chat.get().sync_items():
                 #print(f"PROCESSING: {c.datetime} [{c.author.name}]- {c.message}")
@@ -115,4 +116,4 @@ def disconnect_request():
 
 
 if __name__ == '__main__':
-    socket_.run(app, debug=True)
+    socket_.run(app, host='0.0.0.0', debug=True)

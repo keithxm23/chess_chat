@@ -210,10 +210,11 @@
       document.getElementById('send_yt_id').addEventListener('click', function() {
         yt_id = $('#yt_id').val();
 
-        valid = validVideoId(yt_id);
+        //valid = validVideoId(yt_id);
+        valid = true;
         console.log(valid);
         if(valid){
-          img_src = "http://img.youtube.com/vi/" + yt_id + "/mqdefault.jpg";
+          img_src = "http://img.youtube.com/vi/" + yt_id + "/default.jpg";
           $('#img_thumb').html('<img id="theImg" src="'+img_src+'" />')
           connect_to_socket(yt_id);
           console.log('sending yt_id: '+yt_id);
@@ -245,11 +246,11 @@
 
     function validVideoId(id) {
       var img = new Image();
-      img.src = "http://img.youtube.com/vi/" + id + "/mqdefault.jpg";
+      img.src = "http://img.youtube.com/vi/" + id + "/default.jpg";
       img.onload = function () {
         console.log(this.width);
       }
-      return(img.width);
+      return(img.width==120);
     }
 
     </script>
@@ -288,14 +289,15 @@
 
           <div id="move_btns">
           <button class="btn btn-outline-secondary" type="button" id="logdata">Force chart update</button>
-          <button class="btn btn-outline-secondary" type="button" id="cleardata">Clear moves</button>
+          <button class="btn btn-outline-secondary" type="button" id="cleardata">Clear all moves</button>
+	  <!--- <button class="btn btn-outline-secondary" type="button" id="cleardata">Clear moves older than 1min</button> -->
+          <div id="img_thumb"></div>
           </div>
 
           <button class="btn btn-outline-secondary" type="button" id="disconnect" style="display: none;">Stop</button>
           <div class="chart-container" style="width: 640px; height: 480px">
             <canvas id="myChart"></canvas>
           </div>
-          <div id="img_thumb"></div>
           <div>
             <p>
               Chart only displays the top 10 most common moves
@@ -335,6 +337,7 @@
 </main>
 
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.0-beta3/js/bootstrap.min.js" integrity="sha512-mp3VeMpuFKbgxm/XMUU4QQUcJX4AZfV5esgX72JQr7H7zWusV6lLP1S78wZnX2z9dwvywil1VHkHZAqfGOW7Nw==" crossorigin="anonymous"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/5.0.0-beta3/js/bootstrap.min.js" integrity="sha512-mp3VeMpuFKbgxm/XMUU4QQUcJX4AZfV5esgX72JQr7H7zWusV6lLP1S78wZnX2z9dwvywil1VHkHZAqfGOW7Nw==" crossorigin="anonymous"></script>
 
   </body>
