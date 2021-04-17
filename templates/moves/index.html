@@ -30,6 +30,12 @@
           font-size: 3.5rem;
         }
       }
+
+      #move_log_div{
+        position: relative;
+        height: 600px;
+        overflow: auto;
+      }
     </style>
 
     <script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
@@ -63,7 +69,7 @@
           data:
               {
                   datasets: [{
-                    maxBarThickness: 50,
+                    //maxBarThickness: 50,
                     data: []
                   }],
                   labels: []
@@ -194,7 +200,13 @@
         socket.on('my_response', function(msg, cb) {
             move_data[msg.author_id] = msg;
 
-            $('#log_table').prepend('<tr><td>'+msg.move+'</td><td>'+format_author(msg)+'</td><td>'+unixtime_to_time(msg.unixtime)+'</td></tr>');
+            // set color on this element as well
+            // reduce font size to same as youtube chat
+            move_color_block = '<td style="background-color:'+msg.move.toHex()+'">&nbsp;</td>';
+            author_block = '<td>'+format_author(msg)+'</td>';
+            row_html = '<tr>'+move_color_block+'<td>'+msg.move+'</td>'+ author_block+'<td>'+unixtime_to_time(msg.unixtime)+'</td></tr>';
+
+            $('#log_table').prepend(row_html);
             count = _.size(_.allKeys(move_data));
             $('#move_counter').html('<h5>'+count+' moves logged</h5>');
 
@@ -273,7 +285,7 @@
 
       <div class="col-md-6">
         <div class="h-100 p-5 rounded-3">
-          <h3>rS-FpbFuP0M</h3>
+          <!-- <h3>rS-FpbFuP0M</h3> -->
 
           <div id="yt_id_form">
             <label for="basic-url">Your youtube video URL</label>
@@ -287,17 +299,21 @@
           </div>
 
 
+          <div id="img_thumb"></div>
           <div id="move_btns">
           <button class="btn btn-outline-secondary" type="button" id="logdata">Force chart update</button>
           <button class="btn btn-outline-secondary" type="button" id="cleardata">Clear all moves</button>
 	  <!--- <button class="btn btn-outline-secondary" type="button" id="cleardata">Clear moves older than 1min</button> -->
-          <div id="img_thumb"></div>
           </div>
 
           <button class="btn btn-outline-secondary" type="button" id="disconnect" style="display: none;">Stop</button>
-          <div class="chart-container" style="width: 640px; height: 480px">
+          <!-- <div class="chart-container" style="width: 640px; height: 480px"> -->
+          <div class="chart-container" style="height: 360px">
             <canvas id="myChart"></canvas>
           </div>
+          <br/>
+          <br/>
+          <br/>
           <div>
             <p>
               Chart only displays the top 10 most common moves
@@ -307,16 +323,17 @@
         </div>
       </div>
 
-      <div class="col-md-6">
+      <div id="move_log_div" class="col-md-6">
         <div class="h-100 p-5 border bg-light rounded-3">
           <h2>Moves Log</h2>
 
           <div id="move_counter"></div>
 
-          <table class="table table-striped">
+          <table style="font-size: 13px" class="table table-sm table-striped">
             <thead>
               <tr>
-                <th scope="col">Move</th>
+                <th scope="col" style="width: 5px"></th>
+                <th scope="col" width="5%">Move</th>
                 <th scope="col">Name</th>
                 <th scope="col">Time</th>
               </tr>
@@ -331,7 +348,7 @@
     </div>
 
     <footer class="pt-3 mt-4 text-muted border-top">
-      Made with <3
+      Made with <3 for Sagar Shah
     </footer>
   </div>
 </main>
