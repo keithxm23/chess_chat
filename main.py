@@ -2,6 +2,7 @@ from flask import Flask, render_template, session, copy_current_request_context,
 from flask_socketio import SocketIO, emit, disconnect, join_room, leave_room
 import pytchat
 import re
+from datetime import datetime
 from db import insert_yt_id, check_id_present
 
 #TODO account for string with a space before or after the move
@@ -22,6 +23,10 @@ socket_ = SocketIO(app, async_mode=async_mode)
 @app.route('/')
 def index():
     return render_template('index.html', async_mode=socket_.async_mode)
+
+@app.route('/changelog')
+def changelog():
+    return render_template('changelog.html', async_mode=socket_.async_mode)
 
 @app.route('/arg_test')
 def arg_test():
@@ -46,7 +51,12 @@ def detect_move(move):
         return None
     print('found move')
     print(matches)
-    return matches[0][0].lower()
+    move = matches[0][0].lower()
+    if move == '0-0':
+        return 'o-o'
+    if move == '0-0-0':
+        return 'o-o-o'
+    return move
 
 
 
@@ -67,12 +77,19 @@ def test_message(message):
         session['receive_count'] = session.get('receive_count', 0) + 1
         #chat = pytchat.create(video_id=message['yt_id'], interruptable=False)
         #chat = pytchat.create(video_id='rS-FpbFuP0M', interruptable=False)
+        #chat = pytchat.create(video_id='CULDhDOFEKw', interruptable=False)
         chat = pytchat.create(video_id='rS-FpbFuP0M', interruptable=False, seektime=900)
+        #chat = pytchat.create(video_id='CULDhDOFEKw', interruptable=False, seektime=900)
         while chat.is_alive():
             for c in chat.get().sync_items():
                 #print(f"PROCESSING: {c.datetime} [{c.author.name}]- {c.message}")
-                print(f"PROCESSING: {c.datetime} [{c.author.name}]- {c.message} {c.elapsedTime}")
                 move = detect_move(c.message)
+                time_obj = datetime.strptime(f"{c.datetime} EST", '%Y-%m-%d %H:%M:%S %Z')
+                utc_time = time_obj.strftime('%m/%d/%Y %H:%M:%S %Z')
+
+
+                print(f"PROCESSING: {c.datetime} {c.timestamp} [{c.author.name}]- {c.message} {c.elapsedTime}")
+
                 if move == None:
                     print(f"SKIPPING: {c.datetime} [{c.author.name}]- {c.message}")
                     continue
@@ -85,7 +102,7 @@ def test_message(message):
                       'img_url': c.author.imageUrl,
                       'badge_url': c.author.badgeUrl,
                       'isMod': c.author.isChatModerator,
-                      'unixtime': c.timestamp
+                      'utctime': utc_time
                       },
                     to=yt_id
                     )
@@ -116,5 +133,5 @@ def disconnect_request():
 
 
 if __name__ == '__main__':
-    socket_.run(app, host='0.0.0.0', debug=True)
-    #socket_.run(app, debug=True)
+    #socket_.run(app, host='0.0.0.0', debug=True)
+    socket_.run(app, debug=True)
