@@ -1,0 +1,39 @@
+remove move parser into separate file
+
+remove JS into separate file
+
+Fix stop button
+
+Allow user to truncate row and restart connection.
+- if this method, have a unique chat room per streamer
+
+
+Investigate why move propagation stops when running for 3+ hours
+
+Improve tool tip to show first3 answers
+
+
+use logger instead of printing to stdout
+
+improve logging. more try/excepts for better logging and graceful failures
+
+both in js and python
+
+add a licence
+
+open as opensource
+
+get time accuracy to millisecond using timestamp
+
+use env var for secret key
+
+secure socket comms using auth
+
+add link to changelog
+
+add embedded yt video
+
+add google analytics
+
+Show total unique guessers
+Show total moves guessed
