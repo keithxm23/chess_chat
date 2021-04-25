@@ -4,15 +4,9 @@ import pytchat
 import re
 from datetime import datetime
 from db import insert_yt_id, check_id_present
+from move_parser import detect_move
 
-#TODO account for string with a space before or after the move
-#e.g. "pawn c4"
-# "qc2 is theory"
-# "B×d3?"
-# "Qe3 check then Qh6"
-# "Rf4 Rd3"
 
-PATTERN = re.compile('^([Oo0](-[Oo0]){1,2}|[KkQqRrBbNn]?[a-h]?[1-8]?x?[a-h][1-8](\=[QRBN])?[+#]?){1}$')
 
 async_mode = None
 app = Flask(__name__)
@@ -31,30 +25,6 @@ def changelog():
 @app.route('/moves')
 def moves():
     return render_template('moves/index.html', async_mode=socket_.async_mode)
-
-def detect_move(move):
-  # check for "Go Nb5"
-    move = move.replace('x','')
-    move = move.replace('#','')
-    move = move.replace('+','')
-    move = move.replace('?','')
-    move = move.replace('!','')
-    move = move.replace('.','')
-
-    matches = PATTERN.findall(move)
-    if len(matches) == 0:
-        return None
-    print('found move')
-    print(matches)
-    move = matches[0][0].lower()
-    if move == '0-0':
-        return 'o-o'
-    if move == '0-0-0':
-        return 'o-o-o'
-    return move
-
-
-
 
 @socket_.on('my_event', namespace='/test')
 def test_message(message):
