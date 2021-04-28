@@ -5,8 +5,13 @@ import re
 from datetime import datetime
 from db import insert_yt_id, check_id_present
 from move_parser import detect_move
+import logging
+import configparser
 
 
+config = configparser.ConfigParser()
+config.read('./chesschat.ini')
+logging.basicConfig(filename = './debug.log', level=logging.DEBUG)
 
 async_mode = None
 app = Flask(__name__)
@@ -28,37 +33,41 @@ def moves():
 
 @socket_.on('my_event', namespace='/test')
 def test_message(message):
-    print(message)
+    app.logger.debug(message)
     yt_id = message['yt_id']
     processing = check_id_present(yt_id)
     if processing:
-        print('already processing ytid, skipping')
+        app.logger.debug('already processing ytid, skipping')
         join_room(yt_id)
         pass
     else:
-        print('adding ytid to db and emitting events')
+        app.logger.debug('adding ytid to db and emitting events')
         insert_yt_id(yt_id)
         join_room(yt_id)
         session['receive_count'] = session.get('receive_count', 0) + 1
-        chat = pytchat.create(video_id=message['yt_id'], interruptable=False)
-        #chat = pytchat.create(video_id='rS-FpbFuP0M', interruptable=False)
-        #chat = pytchat.create(video_id='CULDhDOFEKw', interruptable=False)
-        #chat = pytchat.create(video_id='CULDhDOFEKw', interruptable=False, seektime=900)
-        #chat = pytchat.create(video_id='rS-FpbFuP0M', interruptable=False, seektime=900)
+        try:
+            chat = pytchat.create(video_id=message['yt_id'], interruptable=False)
+            #chat = pytchat.create(video_id='rS-FpbFuP0M', interruptable=False)
+            #chat = pytchat.create(video_id='CULDhDOFEKw', interruptable=False)
+            #chat = pytchat.create(video_id='CULDhDOFEKw', interruptable=False, seektime=900)
+            #chat = pytchat.create(video_id='rS-FpbFuP0M', interruptable=False, seektime=900)
+            #chat = pytchat.create(video_id='rS-aFpbFuP0M', interruptable=False, seektime=900)
+        except Exception as e:
+            app.logger.error(e)
         while chat.is_alive():
             for c in chat.get().sync_items():
-                #print(f"PROCESSING: {c.datetime} [{c.author.name}]- {c.message}")
+                #app.logger.debug(f"PROCESSING: {c.datetime} [{c.author.name}]- {c.message}")
                 move = detect_move(c.message)
                 time_obj = datetime.strptime(f"{c.datetime} EST", '%Y-%m-%d %H:%M:%S %Z')
                 utc_time = time_obj.strftime('%m/%d/%Y %H:%M:%S %Z')
 
 
-                print(f"PROCESSING: {c.datetime} {c.timestamp} [{c.author.name}]- {c.message} {c.elapsedTime}")
+                #app.logger.debug(f"PROCESSING: {c.datetime} {c.timestamp} [{c.author.name}]- {c.message} {c.elapsedTime}")
 
                 if move == None:
-                    print(f"SKIPPING: {c.datetime} [{c.author.name}]- {c.message}")
+                    app.logger.debug(f"SKIPPING: {c.datetime} [{c.author.name}]- {c.message}")
                     continue
-                print(f"{session['receive_count']} EMITTING MOVE: {move} :::: {c.datetime} [{c.author.name}]- {c.message}")
+                app.logger.debug(f"{session['receive_count']} EMITTING MOVE: {move} :::: {c.datetime} [{c.author.name}]- {c.message}")
                 emit('my_response',
                     {'move': move,
                       'count': session['receive_count'],

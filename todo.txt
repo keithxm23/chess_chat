@@ -1,5 +1,7 @@
 Add a readme
 
+Create a docker image of the app so others can install easy
+
 Add a section for stats (total active guessers with chart etc)
 
 Add scoring in JS
