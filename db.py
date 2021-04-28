@@ -41,3 +41,4 @@ def truncate():
     con.commit()
     con.close()
 
+#TODO Add method to run a query and display result

@@ -38,6 +38,7 @@
     <script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/3.0.2/chart.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.0.0-beta.1/chartjs-plugin-datalabels.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.12.1/underscore-min.js"></script>
 
 
@@ -60,6 +61,9 @@
 
     window.onload = function() {
         var move_data = {};
+        var active_guessers = {};
+        //TODO^ use local storage for these vars
+        var master_guess_count = 0;
         var top_moves = {};
         var leaderboard_size = 10;
 
@@ -201,6 +205,7 @@
                   }],
                   labels: []
                },
+          plugins: [ChartDataLabels],
           options:
               {
                 indexAxis: 'y',
@@ -279,6 +284,15 @@
               datasets:
               [
                 {
+                  datalabels: {
+                    color: '#414548',
+                    anchor: 'end',
+                    align: 'right',
+                    offset: '5',
+                    font: {
+                      weight: 'bold'
+                    },
+                  },
                   maxBarThickness: 50,
                   data: dat,
                   backgroundColor: colors
@@ -326,6 +340,18 @@
         });
 
         socket.on('my_response', function(msg, cb) {
+
+
+            master_guess_count += 1;
+            $('#total_guessers').html('<h6>'+master_guess_count+' total guesses</h6>');
+
+            if(active_guessers.hasOwnProperty(msg.author)){ // guesser has guessed before
+              active_guessers[msg.author] += 1;
+            } else {
+              active_guessers[msg.author] = 1;
+            }
+
+
             move_data[msg.author_id] = msg;
             if(top_moves.hasOwnProperty(msg.move)){ //move already logged before
                 if ((top_moves[msg.move].length < leaderboard_size) && !(top_moves[msg.move].includes(msg.author))){
@@ -347,7 +373,8 @@
 
             if(msg.count % 3 == 0){ //update chart after every 3 new data points
               parse_move_data(move_data);
-
+              //console.log(active_guessers);
+              //TODO Create stats section to display this data
             }
             if (cb)
                 cb();
@@ -461,6 +488,7 @@
           <br/>
           <br/>
           <br/>
+          <div id="total_guessers"></div>
           <div>
             <p>
               Chart only displays the top 10 most common moves

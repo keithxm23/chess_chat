@@ -1,24 +1,22 @@
 Add a readme
 
-remove move parser into separate file
+Add a section for stats (total active guessers with chart etc)
+
+Add scoring in JS
+Add pause button
 
 remove JS into separate file
 
 Fix stop button
 
-Allow user to truncate row and restart connection.
+(admin page)Allow user to truncate row and restart connection.
 - if this method, have a unique chat room per streamer
 
-
 Investigate why move propagation stops when running for 3+ hours
-
-Improve tool tip to show first3 answers
-
 
 use logger instead of printing to stdout
 
 improve logging. more try/excepts for better logging and graceful failures
-
 both in js and python
 
 add a licence
@@ -31,11 +29,13 @@ use env var for secret key
 
 secure socket comms using auth
 
-add link to changelog
+(admin)show all open sockets
 
 add embedded yt video
 
-add google analytics
-
 Show total unique guessers
 Show total moves guessed
+
+Add method to db.py to run any query and display results
+Add method to db.py to delete specific value
+
