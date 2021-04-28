@@ -11,7 +11,7 @@ import configparser
 
 config = configparser.ConfigParser()
 config.read('./chesschat.ini')
-logging.basicConfig(filename = './debug.log', level=logging.DEBUG)
+logging.basicConfig(filename = config['logger']['logfile'], level=logging.DEBUG)
 
 async_mode = None
 app = Flask(__name__)
@@ -33,15 +33,15 @@ def moves():
 
 @socket_.on('my_event', namespace='/test')
 def test_message(message):
-    app.logger.debug(message)
+    app.logger.info(message)
     yt_id = message['yt_id']
     processing = check_id_present(yt_id)
     if processing:
-        app.logger.debug('already processing ytid, skipping')
+        app.logger.info('already processing ytid, skipping')
         join_room(yt_id)
         pass
     else:
-        app.logger.debug('adding ytid to db and emitting events')
+        app.logger.info('adding ytid to db and emitting events')
         insert_yt_id(yt_id)
         join_room(yt_id)
         session['receive_count'] = session.get('receive_count', 0) + 1
@@ -56,18 +56,18 @@ def test_message(message):
             app.logger.error(e)
         while chat.is_alive():
             for c in chat.get().sync_items():
-                #app.logger.debug(f"PROCESSING: {c.datetime} [{c.author.name}]- {c.message}")
+                #app.logger.info(f"PROCESSING: {c.datetime} [{c.author.name}]- {c.message}")
                 move = detect_move(c.message)
                 time_obj = datetime.strptime(f"{c.datetime} EST", '%Y-%m-%d %H:%M:%S %Z')
                 utc_time = time_obj.strftime('%m/%d/%Y %H:%M:%S %Z')
 
 
-                #app.logger.debug(f"PROCESSING: {c.datetime} {c.timestamp} [{c.author.name}]- {c.message} {c.elapsedTime}")
+                #app.logger.info(f"PROCESSING: {c.datetime} {c.timestamp} [{c.author.name}]- {c.message} {c.elapsedTime}")
 
                 if move == None:
-                    app.logger.debug(f"SKIPPING: {c.datetime} [{c.author.name}]- {c.message}")
+                    app.logger.info(f"SKIPPING: {c.datetime} [{c.author.name}]- {c.message}")
                     continue
-                app.logger.debug(f"{session['receive_count']} EMITTING MOVE: {move} :::: {c.datetime} [{c.author.name}]- {c.message}")
+                app.logger.info(f"{session['receive_count']} EMITTING MOVE: {move} :::: {c.datetime} [{c.author.name}]- {c.message}")
                 emit('my_response',
                     {'move': move,
                       'count': session['receive_count'],
@@ -108,4 +108,5 @@ def disconnect_request():
 
 if __name__ == '__main__':
     #socket_.run(app, host='0.0.0.0', debug=True)
-    socket_.run(app, debug=True)
+    #socket_.run(app, debug=True)
+    socket_.run(app, debug=False)
