@@ -57,8 +57,10 @@ def test_message(message):
             #chat = pytchat.create(video_id='rS-aFpbFuP0M', interruptable=False, seektime=900)
         except Exception as e:
             app.logger.error(e)
+        sync_counter = 0
         while chat.is_alive():
-            app.logger.info(f"Syncing chat!")
+            sync_counter += 1
+            app.logger.info(f"Syncing chat! count: {sync_counter}")
             time.sleep(2)
             for c in chat.get().sync_items():
                 #app.logger.info(f"PROCESSING: {c.datetime} [{c.author.name}]- {c.message}")

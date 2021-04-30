@@ -20,6 +20,8 @@ test_move('ND1','nd1')
 test_move('Nf5+','nf5')
 test_move('H4','h4')
 test_move('Qc3 ','qc3')
+test_move('0-0 ','o-o')
+test_move('0-0-0 ','o-o-o')
 
 
 

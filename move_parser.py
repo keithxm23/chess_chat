@@ -8,6 +8,7 @@ def detect_move(move):
     move = move.lower()
     move = move.strip()
     move = move.replace('x','')
+    move = move.replace('0','o')
     move = move.replace('×','')
     move = move.replace('#','')
     move = move.replace('+','')
