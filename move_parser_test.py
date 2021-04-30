@@ -19,6 +19,7 @@ test_move('B×d3','bd3')
 test_move('ND1','nd1')
 test_move('Nf5+','nf5')
 test_move('H4','h4')
+test_move('Qc3 ','qc3')
 
 
 

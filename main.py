@@ -5,13 +5,16 @@ import re
 from datetime import datetime
 from db import insert_yt_id, check_id_present
 from move_parser import detect_move
+import time
+
 import logging
 import configparser
 
 
 config = configparser.ConfigParser()
 config.read('./chesschat.ini')
-logging.basicConfig(filename = config['logger']['logfile'], level=logging.DEBUG)
+#logging.basicConfig(filename = config['logger']['logfile'], level=logging.DEBUG)
+logging.basicConfig(filename = config['logger']['logfile'], level=logging.INFO, format=f'%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
 
 async_mode = None
 app = Flask(__name__)
@@ -55,6 +58,8 @@ def test_message(message):
         except Exception as e:
             app.logger.error(e)
         while chat.is_alive():
+            app.logger.info(f"Syncing chat!")
+            time.sleep(2)
             for c in chat.get().sync_items():
                 #app.logger.info(f"PROCESSING: {c.datetime} [{c.author.name}]- {c.message}")
                 move = detect_move(c.message)
