@@ -251,6 +251,13 @@
         var ctx = document.getElementById('myChart').getContext('2d');
         var chart = new Chart(ctx, config);
 
+        var htmlToElement = function(html) {
+            var template = document.createElement('template');
+            html = html.trim(); // Never return a text node of whitespace as the result
+            template.innerHTML = html;
+            return template.content.firstChild;
+        };
+
         var parse_move_data = function(m_data) {
             //console.log(m_data);
             m_data_tmp = _.each(m_data, function(v, k, o) { return v });
@@ -328,6 +335,10 @@
 
       var socket;
       var connect_to_socket = function(yt_id){
+      var log_table_element = document.getElementById('log_table');
+      var total_guessers = document.getElementById('total_guessers');
+      var move_counter_element = document.getElementById('move_counter');
+      var el;
         namespace = '/test';
         socket = io(namespace);
 
@@ -343,7 +354,7 @@
 
 
             master_guess_count += 1;
-            $('#total_guessers').html('<h6>'+master_guess_count+' total guesses</h6>');
+            total_guessers.textContent = master_guess_count+' total guesses';
 
             if(active_guessers.hasOwnProperty(msg.author)){ // guesser has guessed before
               active_guessers[msg.author] += 1;
@@ -367,9 +378,10 @@
             author_block = '<td>'+format_author(msg)+'</td>';
             row_html = '<tr>'+move_color_block+'<td>'+msg.move+'</td>'+ author_block+'<td>'+format_time(msg.utctime)+'</td></tr>';
 
-            $('#log_table').prepend(row_html);
+            el = htmlToElement(row_html);
+            log_table_element.prepend(el);
             count = _.size(_.allKeys(move_data));
-            $('#move_counter').html('<h5>'+count+' moves logged</h5>');
+            move_counter_element.textContent = count+' moves logged';
 
             if(msg.count % 3 == 0){ //update chart after every 3 new data points
               parse_move_data(move_data);
@@ -488,7 +500,9 @@
           <br/>
           <br/>
           <br/>
-          <div id="total_guessers"></div>
+          <div>
+            <h6 id="total_guessers"></h6>
+          </div>
           <div>
             <p>
               Chart only displays the top 10 most common moves
@@ -505,7 +519,9 @@
         <div class="h-100 p-5 border bg-light rounded-3">
           <h2>Move Log</h2>
 
-          <div id="move_counter"></div>
+          <div>
+            <h5 id="move_counter"></h5>
+          </div>
 
           <table style="font-size: 13px" class="table table-sm table-striped">
             <thead>
