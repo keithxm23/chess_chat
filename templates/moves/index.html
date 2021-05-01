@@ -38,7 +38,7 @@
     <script src="//code.jquery.com/jquery-1.12.4.min.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="//cdnjs.cloudflare.com/ajax/libs/Chart.js/3.0.2/chart.min.js"></script>
-    <script src="//cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.0.0-beta.1/chartjs-plugin-datalabels.min.js"></script>
+    <!-- <script src="//cdnjs.cloudflare.com/ajax/libs/chartjs-plugin-datalabels/2.0.0-beta.1/chartjs-plugin-datalabels.min.js"></script> -->
     <script src="//cdnjs.cloudflare.com/ajax/libs/underscore.js/1.12.1/underscore-min.js"></script>
 
 
@@ -205,7 +205,7 @@
                   }],
                   labels: []
                },
-          plugins: [ChartDataLabels],
+          //plugins: [ChartDataLabels],
           options:
               {
                 indexAxis: 'y',
@@ -291,15 +291,15 @@
               datasets:
               [
                 {
-                  datalabels: {
-                    color: '#414548',
-                    anchor: 'end',
-                    align: 'right',
-                    offset: '5',
-                    //font: {
-                    //  weight: 'bold'
-                    //},
-                  },
+                  //datalabels: {
+                  //  color: '#414548',
+                  //  anchor: 'end',
+                  //  align: 'right',
+                  //  offset: '5',
+                  //  //font: {
+                  //  //  weight: 'bold'
+                  //  //},
+                  //},
                   maxBarThickness: 50,
                   data: dat,
                   backgroundColor: colors
