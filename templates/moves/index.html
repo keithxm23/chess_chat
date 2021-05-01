@@ -251,6 +251,13 @@
         var ctx = document.getElementById('myChart').getContext('2d');
         var chart = new Chart(ctx, config);
 
+        var htmlToElement = function(html) {
+            var template = document.createElement('template');
+            html = html.trim(); // Never return a text node of whitespace as the result
+            template.innerHTML = html;
+            return template.content.firstChild;
+        };
+
         var parse_move_data = function(m_data) {
             //console.log(m_data);
             m_data_tmp = _.each(m_data, function(v, k, o) { return v });
@@ -328,6 +335,8 @@
 
       var socket;
       var connect_to_socket = function(yt_id){
+      var log_table_element = document.getElementById('log_table');
+      var el;
         namespace = '/test';
         socket = io(namespace);
 
@@ -367,7 +376,8 @@
             author_block = '<td>'+format_author(msg)+'</td>';
             row_html = '<tr>'+move_color_block+'<td>'+msg.move+'</td>'+ author_block+'<td>'+format_time(msg.utctime)+'</td></tr>';
 
-            $('#log_table').prepend(row_html);
+            el = htmlToElement(row_html);
+            log_table_element.prepend(el);
             count = _.size(_.allKeys(move_data));
             $('#move_counter').html('<h5>'+count+' moves logged</h5>');
 
