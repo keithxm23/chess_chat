@@ -41,4 +41,12 @@ def truncate():
     con.commit()
     con.close()
 
+def truncate_val(val):
+    con = sqlite3.connect('moves.db')
+    cur = con.cursor()
+
+    cur.execute(f"DELETE FROM videos where yt_id=?", [val])
+
+    con.commit()
+    con.close()
 #TODO Add method to run a query and display result
